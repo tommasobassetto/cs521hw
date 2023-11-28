@@ -1,210 +1,75 @@
 ; Lines that start with a semicolon are comments
 
-; zonotope Z constants
-(declare-const a1 Real)
-(declare-const b1 Real)
-(declare-const c1 Real)
-(declare-const d1 Real)
+; Define the function for which you are constructing a transformer
 
-(declare-const a2 Real)
-(declare-const b2 Real)
-(declare-const c2 Real)
-(declare-const d2 Real)
+(define-fun abs ((x Real)) Real
+(ite (> x 0) x (- x))       ; absolute value function
+)
 
-; vertices of Z1 - 6,2
-(declare-const z1v1x Int)
-(assert (= z1v1x 6))
 
-(declare-const z1v1y Real)
-(assert (= z1v1y 2))
+(define-fun max ((l Real) (u Real)) Real
+(ite (> l u) l u)       ; max value function
+)
 
-; noise symbols
-(declare-const e1z1v1 Real)
-(assert (<= e1z1v1 1))
-(assert (>= e1z1v1 -1))
+(define-fun min ((l Real) (u Real)) Real
+(ite (> l u) u l)       ; min value function
+)
 
-(declare-const e2z1v1 Real)
-(assert (<= e2z1v1 1))
-(assert (>= e2z1v1 -1))
+(define-fun pow2 ((x Real)) Real
+(* x x) ; x^2
+)
+(define-fun pow3 ((x Real)) Real
+(* x (pow2 x)) ; x^3
+)
 
-(declare-const e3z1v1 Real)
-(assert (<= e3z1v1 1))
-(assert (>= e3z1v1 -1))
+(define-fun sgneq ((l Real) (u Real)) Bool
+(ite (> (* l u) 0) true false)       ; “sign equals” function
+)
 
-; require it to be in the zonotope
-(assert (= z1v1x (+ a1 (* b1 e1z1v1) (* c1 e2z1v1) (* d1 e3z1v1))))
-(assert (= z1v1y (+ a2 (* b2 e1z1v1) (* c2 e2z1v1) (* d2 e3z1v1))))
 
-; vertices of Z1 - 0,-2
-(declare-const z1v2x Real)
-(assert (= z1v2x 0))
+(define-fun f ((x Real)) Real
+(max (pow2 x) (pow3 x)) ; max(x^2, x^3)
+)
 
-(declare-const z1v2y Real)
-(assert (= z1v2y -2))
 
-; noise symbols
-(declare-const e1z1v2 Real)
-(assert (<= e1z1v2 1))
-(assert (>= e1z1v2 -1))
+(define-fun Tf_lower ((l Real) (u Real)) Real
+(ite (sgneq l u) (min (f l) (f u)) 0) ; lower bound of f(x) on [l, u]
+)
 
-(declare-const e2z1v2 Real)
-(assert (<= e2z1v2 1))
-(assert (>= e2z1v2 -1))
+(define-fun Tf_upper ((l Real) (u Real)) Real
+(max (f l) (f u)) ; upper bound of f(x) on [l, u]
+)
 
-(declare-const e3z1v2 Real)
-(assert (<= e3z1v2 1))
-(assert (>= e3z1v2 -1))
 
-; require it to be in the zonotope
-(assert (= z1v2x (+ a1 (* b1 e1z1v2) (* c1 e2z1v2) (* d1 e3z1v2))))
-(assert (= z1v2y (+ a2 (* b2 e1z1v2) (* c2 e2z1v2) (* d2 e3z1v2))))
+; To state the correctness of the transformer, ask the solver if there is 
+; (1) a Real number x and (2) an interval [l,u]
+; that violate the soundness property, i.e., satisfy the negation of the soundness property.
 
-; vertices of Z1 - 2, 0
-(declare-const z1v3x Real)
-(assert (= z1v3x 2))
+(declare-const x Real)
+(declare-const l Real)
+(declare-const u Real)
 
-(declare-const z1v3y Real)
-(assert (= z1v3y 0))
+; store complex expressions in intermediate variables
+; output under the function
+(declare-const fx Real)
+(assert (= fx (f x)))
+; lower bound of range interval
+(declare-const l_Tf Real)
+(assert (= l_Tf (Tf_lower l u)))
+; upper bound of range interval
+(declare-const u_Tf Real)
+(assert (= u_Tf (Tf_upper l u)))
 
-; noise symbols
-(declare-const e1z1v3 Real)
-(assert (<= e1z1v3 1))
-(assert (>= e1z1v3 -1))
 
-(declare-const e2z1v3 Real)
-(assert (<= e2z1v3 1))
-(assert (>= e2z1v3 -1))
+(assert (not                         ; negation of soundness property 
+(=>  
+    (and (<= l x) (<= x u))          ; if input is within given bounds
+    (and (<= l_Tf fx) (<= fx u_Tf))  ; then output is within transformer bounds
+)))
 
-(declare-const e3z1v3 Real)
-(assert (<= e3z1v3 1))
-(assert (>= e3z1v3 -1))
-
-; require it to be in the zonotope
-(assert (= z1v3x (+ a1 (* b1 e1z1v3) (* c1 e2z1v3) (* d1 e3z1v3))))
-(assert (= z1v3y (+ a2 (* b2 e1z1v3) (* c2 e2z1v3) (* d2 e3z1v3))))
-
-; vertices of Z1 - 4, 0
-(declare-const z1v4x Real)
-(assert (= z1v4x 4))
-
-(declare-const z1v4y Real)
-(assert (= z1v4y 0))
-
-; noise symbols
-(declare-const e1z1v4 Real)
-(assert (<= e1z1v4 1))
-(assert (>= e1z1v4 -1))
-
-(declare-const e2z1v4 Real)
-(assert (<= e2z1v4 1))
-(assert (>= e2z1v4 -1))
-
-(declare-const e3z1v4 Real)
-(assert (<= e3z1v4 1))
-(assert (>= e3z1v4 -1))
-
-; require it to be in the zonotope
-(assert (= z1v4x (+ a1 (* b1 e1z1v4) (* c1 e2z1v4) (* d1 e3z1v4))))
-(assert (= z1v4y (+ a2 (* b2 e1z1v4) (* c2 e2z1v4) (* d2 e3z1v4))))
-
-; vertices of Z2 - 0, 2
-(declare-const z2v1x Real)
-(assert (= z2v1x 0))
-
-(declare-const z2v1y Real)
-(assert (= z2v1y 2))
-
-; noise symbols
-(declare-const e1z2v1 Real)
-(assert (<= e1z2v1 1))
-(assert (>= e1z2v1 -1))
-
-(declare-const e2z2v1 Real)
-(assert (<= e2z2v1 1))
-(assert (>= e2z2v1 -1))
-
-(declare-const e3z2v1 Real)
-(assert (<= e3z2v1 1))
-(assert (>= e3z2v1 -1))
-
-; require it to be in the zonotope
-(assert (= z2v1x (+ a1 (* b1 e1z2v1) (* c1 e2z2v1) (* d1 e3z2v1))))
-(assert (= z2v1y (+ a2 (* b2 e1z2v1) (* c2 e2z2v1) (* d2 e3z2v1))))
-
-; vertices of Z2 - -2, 0
-(declare-const z2v2x Real)
-(assert (= z2v2x -2))
-
-(declare-const z2v2y Real)
-(assert (= z2v2y 0))
-
-; noise symbols
-(declare-const e1z2v2 Real)
-(assert (<= e1z2v2 1))
-(assert (>= e1z2v2 -1))
-
-(declare-const e2z2v2 Real)
-(assert (<= e2z2v2 1))
-(assert (>= e2z2v2 -1))
-
-(declare-const e3z2v2 Real)
-(assert (<= e3z2v2 1))
-(assert (>= e3z2v2 -1))
-
-; require it to be in the zonotope
-(assert (= z2v2x (+ a1 (* b1 e1z2v2) (* c1 e2z2v2) (* d1 e3z2v2))))
-(assert (= z2v2y (+ a2 (* b2 e1z2v2) (* c2 e2z2v2) (* d2 e3z2v2))))
-
-; vertices of Z2 - 4, 0
-(declare-const z2v3x Real)
-(assert (= z2v3x 0))
-
-(declare-const z2v3y Real)
-(assert (= z2v3y 2))
-
-; noise symbols
-(declare-const e1z2v3 Real)
-(assert (<= e1z2v3 1))
-(assert (>= e1z2v3 -1))
-
-(declare-const e2z2v3 Real)
-(assert (<= e2z2v3 1))
-(assert (>= e2z2v3 -1))
-
-(declare-const e3z2v3 Real)
-(assert (<= e3z2v3 1))
-(assert (>= e3z2v3 -1))
-
-; require it to be in the zonotope
-(assert (= z2v3x (+ a1 (* b1 e1z2v3) (* c1 e2z2v3) (* d1 e3z2v3))))
-(assert (= z2v3y (+ a2 (* b2 e1z2v3) (* c2 e2z2v3) (* d2 e3z2v3))))
-
-; vertices of Z2 - 2, -2
-(declare-const z2v4x Real)
-(assert (= z2v4x 0))
-
-(declare-const z2v4y Real)
-(assert (= z2v4y 2))
-
-; noise symbols
-(declare-const e1z2v4 Real)
-(assert (<= e1z2v4 1))
-(assert (>= e1z2v4 -1))
-
-(declare-const e2z2v4 Real)
-(assert (<= e2z2v4 1))
-(assert (>= e2z2v4 -1))
-
-(declare-const e3z2v4 Real)
-(assert (<= e3z2v4 1))
-(assert (>= e3z2v4 -1))
-
-; require it to be in the zonotope
-(assert (= z2v4x (+ a1 (* b1 e1z2v4) (* c1 e2z2v4) (* d1 e3z2v4))))
-(assert (= z2v4y (+ a2 (* b2 e1z2v4) (* c2 e2z2v4) (* d2 e3z2v4))))
 
 ; This command asks the solver to check the satisfiability of your query
 ; If you wrote a sound transformer, the solver should say 'unsat'
 (check-sat)
 ; If the solver returns 'sat', uncommenting the line below will give you the values of the various variables that violate the soundness property. This will help you debug your solution.
-(get-model)
+;(get-model)
