@@ -6,25 +6,27 @@
 (declare-var a Real)
 (declare-var b Real)
 
-(declare-var a1 Real)
-(declare-var b1 Real)
-
 ;; function value
 (define-fun absval ((x Real)) Real
   (ite (<= 0 x) x (- x)))
 
+;; Specify the synthesis goal for lower function
+(synth-fun lower ((a Real) (b Real)) Real)
+
 ;; Assert the specification
 (constraint (forall ((x Real) (a Real) (b Real))
               (=> (and (<= a x) (<= x b))
-                  (and (<= a1 (absval x)) (<= (absval x) b1))
+                  (>= (absval x) (lower a b))
                 )))
 
-;; Specify the synthesis goal
-(synth-fun lower ((a Real) (b Real)) Real)
+;; Specify the synthesis goal for upper function
 (synth-fun upper ((a Real) (b Real)) Real)
 
-;; enforce f(a, b) = a1, b1
-(constraint (= (lower a b) a1))
-(constraint (= (upper a b) b1))
+;; Assert the specification
+(constraint (forall ((x Real) (a Real) (b Real))
+              (=> (and (<= a x) (<= x b))
+                  (<= (absval x) (upper a b))
+                )))
+
 
 (check-synth)
