@@ -6,9 +6,44 @@
 (declare-var a Real)
 (declare-var b Real)
 
-;; function value
+;; Helper functions
+(define-fun max ((l Real) (u Real)) Real
+    (ite (> l u) l u)
+)
+
+(define-fun min ((l Real) (u Real)) Real
+    (ite (> l u) u l)
+)
+
+;; All functions in the HW
 (define-fun absval ((x Real)) Real
-  (ite (<= 0 x) x (- x)))
+  (ite (<= 0 x) x (- x))
+)
+
+(define-fun squared ((x Real)) Real
+    (* x x)
+)
+
+(define-fun cubed ((x Real)) Real
+    (* x (* x x))
+)
+
+(define-fun x_minus_abs ((x Real)) Real
+    (- x (abs x))
+)
+
+(define-fun f4 ((x Real)) Real
+    (min (- x (abs x)) (+ x (abs x)))
+)
+
+(define-fun f5 ((x Real)) Real
+    (max (squared x) (cubed x))
+)
+
+
+(define-fun f ((x Real)) Real
+    (f5 x) ; Change this to whatever you want to analyze
+)
 
 ;; Specify the synthesis goal for lower function
 (synth-fun lower ((a Real) (b Real)) Real)
@@ -16,7 +51,7 @@
 ;; Assert the specification
 (constraint (forall ((x Real) (a Real) (b Real))
               (=> (and (<= a x) (<= x b))
-                  (>= (absval x) (lower a b))
+                  (>= (f x) (lower a b))
                 )))
 
 ;; Specify the synthesis goal for upper function
@@ -25,7 +60,7 @@
 ;; Assert the specification
 (constraint (forall ((x Real) (a Real) (b Real))
               (=> (and (<= a x) (<= x b))
-                  (<= (absval x) (upper a b))
+                  (<= (f x) (upper a b))
                 )))
 
 
